@@ -67,6 +67,8 @@ Dla ID oddziału banku prawidłowa linia poleceń wygląda:
   L=litera, C=cyfra, K=cyfra kontrolna
   ```
   SPRID dopuszcza zastosowanie ukośnikow, ale tylko w miejscach jak we wzorze.
+###### screenshot
+![SPRID](/IMG/SPRID_V2.PNG)
 ### KOPMATYBILNOŚĆ
 Program został przetestowany na:
 - DOSBox v0-74-3 - skompilowano aktualną wersję.
