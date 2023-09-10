@@ -1,4 +1,4 @@
-## SPRID ver. 2.0 ++ Sprawdz Numer Identyfikacyjny ++ DOS, DOSBox
+## SPRID ver. 2.0 ++ Sprawdz Numer Identyfikacyjny ++ dla DOS, DOSBox
 <sup>MOD0723, w ramach odkurzania starych dyskietek...</sup>
 
 Program sprawdza pod względem FORMALNYM poprawność niektórych numerów ewidencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje natomiast ich SENSOWNOŚCI. Oznacza to, że sprawdzany numer jest potencjalnie prawidłowy, ale nie ma gwarancji co do jego autentyczności.
@@ -23,7 +23,7 @@ NUMERID:
          SPRID.COM
          SPRID.COM /?
 
-#### Parser linii poleceń.
+#### Uwagi dla linii poleceń.
 - Jeżeli w numerze identyfikacyjnym występują odstępy (spacje) należy je pominąć, lub zastąpić uniwersalnym separatorem (grupy) cyfr: `-`.
 - Separatory nie mogą występować bezpośrednio po sobie, oraz przed i po numerze.   
   `SPRID /b:-1120--1021-    <- 3 bledy!`
@@ -54,10 +54,13 @@ Dla ID oddziału banku prawidłowa linia poleceń wygląda:
   Ocena tylko na podstawie cyfry kontrolnej. (lepiej: [Check-PESEL](https://github.com/marikaz123/Check-PESEL))
 - REGON    
   Można sprawdzać wszystkie REGON-y (7, 9 i 14 cyfr), z tym, że stary, 7-cyfrowy REGON należy poprzedzić dwoma zerami.
-  
-> UWAGA na internetowe generatory REGON-u 14-cyfrowego!
-> Tzw. "programiści" nie wiedza jak zbudowany jest REGON 14-cyfrowy i generują przypadkowe ciągi, aby tylko cyfra kontrolna calości sie zgadzała. Niestety to nie działa. Pierwsze 9 cyfr REGON-u 14-cyfrowego to również REGON i również MUSI być prawidłowy, z prawidłową dla siebie cyfrą kontrolną. Tak, REGON14 zawiera DWIE cyfry kontrolne. SPRID liczy obie, najpierw dla pierwszych 9 cyfr jako REGON9 i, dopiero po potwierdzeniu zgodności, liczy calość. Jeżeli dla REGONU14 z generatora internetowego wypada ocena NEG, wystarczy sprawdzić pierwsze 9 cyfr i wszystko jasne.
-- Paszport
+   
+  #### UWAGA na internetowe generatory REGON-u 14-cyfrowego!
+  **Tzw. "programiści" nie wiedza jak zbudowany jest REGON 14-cyfrowy i generują przypadkowe ciągi, aby tylko cyfra kontrolna calości się zgadzała.   
+  Niestety to nie działa.   
+  Pierwsze 9 cyfr REGON-u 14-cyfrowego to również REGON i również MUSI być prawidłowy, z prawidłową dla siebie cyfrą kontrolną. Tak, REGON14 zawiera DWIE cyfry kontrolne. SPRID liczy obie, najpierw dla 
+  pierwszych 9 cyfr jako REGON9 i dopiero po potwierdzeniu zgodności, liczy calość. Jeżeli dla REGONU14 z generatora internetowego wypada ocena NEG, wystarczy sprawdzić pierwsze 9 cyfr i wszystko jasne.**
+- Paszport   
   Nie wymaga komentarza.
 - Numer Nowej Księgi Wieczystej    
   Identyfikator Nowej Księgi Wieczystej składa sie z 3 grup znaków oddzielonych ukośnikiem:
@@ -72,7 +75,7 @@ Dla ID oddziału banku prawidłowa linia poleceń wygląda:
 ### KOPMATYBILNOŚĆ
 Program został przetestowany na:
 - DOSBox v0-74-3 - skompilowano aktualną wersję.
-- MS-DOS v5.0+   - na maszynie wirtualnej. (SPRID v1.1) rownież na maszynie fizycznej.
+- MS-DOS v5.0+   - na maszynie wirtualnej. SPRID (ID) v1.1 rownież na maszynie fizycznej.
 ### ZRÓDŁA
 Przede wszystkim: https://romek.info/ut/kody.html
 
