@@ -1,9 +1,9 @@
-# SPRID v2.0 ** (c)1994-2023 'marikaz'
+# SPRID ** (c)1994-2023 'marikaz'
 
 SPRID.COM: IDN_V2.OBJ
            TLINK /t /x IDN_V2.OBJ,SPRID.COM
-IDN_V2.OBJ: IDN_V2.ASM
-            TASM /m /dCPU386 IDN_V2.ASM
+IDN_V2.OBJ: CLEAN IDN_V2.ASM
+            TASM /m IDN_V2.ASM
 CLEAN:
        DEL IDN_V2.OBJ
        DEL SPRID.COM
