@@ -1,6 +1,8 @@
 -----------------------------------------------------------------------------
-** SPRID ver. 2.0 ** Sprawdz Numer Identyfikacyjny ** (c)1994-2023 'marikaz'
+     ** Sprawdz Numer Identyfikacyjny **
+            ** SPRID ver. 2.1 **                       (c)1994-2023 'marikaz'
 -----------------------------------------------------------------------------
+                                                                Mod. 10/2023
 
 Program sprawdza pod wzgledem FORMALNYM poprawnosc niektorych numerow ewi-
 dencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje jednak
@@ -8,73 +10,67 @@ ich SENSOWNOSCI. Oznacza to, ze sprawdzany numer jest potencjalnie prawi-
 dlowy, ale nie ma gwarancji co do jego autentycznosci.
 
 
-   LINIA POLECEN
-   --------------
+     OBSLUGA
+     -------
 
 Skladnia:
-         SPRID.COM <opcja[:]><NUMERID>
+          SPRID.COM <opcja[:]><ID>
 
-  Opcje:
-         /b[:] - Numer identyfikacyjny oddzialu banku
-         /d[:] - Dowod osobisty
-         /k[:] - Numer karty platniczej
-         /n[:] - NIP
-         /p[:] - PESEL
-         /r[:] - REGON
-         /s[:] - Paszport
-         /w[:] - Numer nowej Ksiegi Wieczystej
+   Opcje:
+          /b[:] - Numer Rozliczeniowy Banku
+          /d[:] - Dowod Osobisty
+          /e[:] - EAN (8 lub 13 cyfr)
+          /i[:] - ISBN / ISSN (stare)
+          /k[:] - Numer Karty Platniczej
+          /n[:] - NIP
+          /p[:] - PESEL
+          /r[:] - REGON (9 lub 14 cyfr)
+          /s[:] - Paszport
+          /w[:] - Numer Ksiegi Wieczystej (nowej)
 
-NUMERID:
-         Taki jak w dokumencie z zastrzezeniem ponizej.
+      ID:
+          Jak w dokumencie (bez spacji)
 
-   Info:
-         SPRID.COM
-         SPRID.COM /?
+    Info:
+          SPRID.COM [/?]
 
-Parser linii polecen.
+Linia polecen:
 
 - Jezeli w numerze identyfikacyjnym wystepuja odstepy (spacje) nalezy je
   pominac, lub zastapic uniwersalnym separatorem (grupy) cyfr: '-'.
 
 - Separatory nie moga wystepowac bezposrednio po sobie oraz przed i po
   numerze.
-          SPRID /b:-1120--1021-    <- 3 bledy
 
-- Dopuszczalny jest separator '/' ale tylko dla nowej Ksiegi Wieczystej
-  i tylko w miejscach w ktorych tam formalnie wystepuje. Nie ma on
-  wplywu na dzialanie separatora uniwersalnego z zastrzezeniem jak wyzej.
+- Wielkosc liter w opcjach i identyfikatorach nie ma znaczenia.
 
-- Wielkosc liter w opcjach i numerach ID nie ma znaczenia.
-
-- Biale znaki (spacja, tabulator) sa ignorowane ale tylko przed i po
+- Biale znaki (spacja, tabulator) sa ignorowane ale tylko przed lub po
   prawidlowo wpisanej opcji z numerem.
 
 - Obcy znak w linii polecen wyswietli info (tak jak '/?'), natomiast
-  blad w numerze poda komunikat: "Blad w numerze seryjnym/ewidencyjnym"
+  blad w numerze identyfikacyjnym poda komunikat:
+
+      Blad w numerze seryjnym / ewidencyjnym
 
 Przyklad uzycia:
 
 Dla ID oddzialu banku prawidlowa linia polecen wyglada:
-najkrotsza:
- SPRID /b12345676
-i najdluzsza:
- SPRID /b:1-2-3-4-5-6-7-6
-oraz czytelna:
- SPRID /b:1234-5676
+   najkrotsza: SPRID /b12345676
+   najdluzsza: SPRID /b:1-2-3-4-5-6-7-6
+     czytelna: SPRID /b:1234-5676
 
-   UZUPELNIENIE
-   ------------
-Do numerow seryjnych i ewidencyjnych.
 
-- Numer ID odzialu banku.
+   UWAGI
+   -----
+
+- Numer rozliczeniowy odzialu banku.
   Jest to 8 cyfr wystepujacych na pozycjach od 3 do 10 w numerze konta.
 
-- Dowod osobisty.
-  Mie wymaga komentarza.
+- ISBN / ISSN
+  Stare numery obowiazujace do 2007 roku. Obecne numery sa zgodne
+  z EAN13 i powinny byc sprawdzane ta opcja.
 
 - Numer karty platniczej.
-  VISA 13 i 16 cyfr, MasterCard 16 cyfr, American Express 15 cyfr, Diners
-  Club / Carte Blanche 14 cyfr, JBC 16 cyfr.
   Aktualnie powinny dzialac wszystkie karty (wszystkich organizacji), jednak
   trzeba miec na uwadze fakt, ze SPRID uzna za blad numery ponizej 13 cyfr
   i powyzej 16.
@@ -82,41 +78,37 @@ Do numerow seryjnych i ewidencyjnych.
 - NIP
   Numer NIP nadawany w Polsce.
 
-- PESEL
-  Ocena tylko na podstawie cyfry kontrolnej. (lepiej: CHKPESEL)
-
 - REGON
-  Mozna sprawdzac wszystkie REGON-y (7, 9 i 14 cyfr).
-  Z tym, ze stary, 7-cyfrowy REGON nalezy poprzedzic dwoma zerami.
+  Mozna sprawdzac wszystkie REGON-y (7, 9 i 14 cyfr) z tym, ze stary,
+  7-cyfrowy REGON nalezy poprzedzic dwoma zerami.
 
-  Wazna UWAGA na temat REGON-u 14-cyfrowego!
-
-  Podczas wlasnych testow SPRID-a nalezy uwazac na generatory internetowe.
+  !UWAGA na internetowe generatory REGON-u 14-cyfrowego!
   'Programisci' nie wiedza jak zbudowany jest REGON 14-cyfrowy i generuja
   przypadkowe ciagi aby tylko cyfra kontrolna calosci sie zgadzala.
-  Niestety to nie dziala. Prawidlowy REGON14 musi zawierac w sobie PRAWIDLOWY
-  REGON9 z PRAWIDLOWA dla siebie cyfra kontrolna.
-  Tak, REGON14 zawiera DWIE cyfry kontrolne.
+  Niestety to nie dziala.
+  Pierwsze 9 cyfr REGON-u 14-cyfrowego to rowniez REGON i rowniez MUSI
+  byc prawidlowy, z prawidlowa dla siebie cyfra kontrolna. REGON14 zawiera
+  de facto 2 cyfry kontrolne.
   SPRID liczy obie, najpierw dla pierwszych 9 cyfr jako REGON9 i dopiero po
   stwierdzeniu zgodnosci liczy calosc.
-  Jezeli dla REGONU14 z generatora intern. ocena wypada NEG, wystarczy
-  sprawdzic pierwsze 9 cyfr. Wtedy ocena NEG wszystko wyjasnia.
+  Jezeli dla REGONU14 z generatora internetowego wypada ocena NEG, wystarczy
+  sprawdzic pierwsze 9 cyfr. Wtedy ocena NEG to wyjasnia.
 
-- Paszport
-  Nie wymaga komentarza.
+- Numer Nowej Ksiegi Wieczystej
+  Identyfikator Nowej Ksiegi Wieczystej sklada sie z 3 grup znakow
+  oddzielonych ukosnikiem:
+  Wzor: LLCL/CCCCCCCC/K
+  L=litera, C=cyfra, K=cyfra kontrolna
+  SPRID dopuszcza zastosowanie ukosnikow tylko w miejscach jak we wzorze.
 
-- Numer Ksiegi Wieczystej
+      KOPMATYBILNOSC
+      --------------
+  Program zostal przetestowany dla:
+  DOSBox v0-74-3 - przeprowadzono kompilacje aktualnej wersji.
+  MS-DOS v5.0+   - na maszynie virtualnej.
+  MS-DOS v5.0+   - SPRID v1.1 rowniez na maszynie fizycznej.
 
-   KOPMATYBILNOSC
-   --------------
-   Program zostal przetestowany dla:
-   DOSBox v0-74-3
-   MS-DOS v5.0, 6.22 na maszynie virtualnej
-   MS-DOS v5.0+ (SPRID v1.1) rowniez na maszynie fizycznej.
-
-   ZROLDLA
-   -------
-   Przede wszystkim:
-   https://romek.info/ut/kody.html
-
----/ EOF /---------------------------------------------------/ SPRID v2.0 /--
+      ZROLDLA
+      -------
+  https://romek.info/ut/kody.html
+  Wikipedia
