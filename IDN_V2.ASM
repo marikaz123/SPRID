@@ -1,9 +1,12 @@
 ;----------------------------------------------------------------------------
-; ** SPRawdz numer IDentyfikacyjny :: SPRID v2.0 :: MOD0723 **
+; ** SPRawdz numer IDentyfikacyjny :: SPRID v2.1 :: MOD1023 **
 ;----------------------------------------------------------------------------
 ; Program sprawdza pod wzgledem formalnym poprawnosc niektorych numerow
 ; ewidencyjnych i seryjnych.
 ;--------------------------------------------------------------/ marikaz /---
+
+         CPOZ = 2
+         CNEG = 4
 
 PRINTMSG MACRO msg
          mov dx,OFFSET msg
@@ -11,17 +14,10 @@ PRINTMSG MACRO msg
          int 21h
          ENDM
 
-code            SEGMENT USE16 'code'
+code            SEGMENT 'code'
                 ASSUME cs:code
-                ORG 100h
-
-IFDEF CPU386
-  %OUT CPU386
- .386
-ELSE
-  %OUT JUMPS
-  JUMPS
-ENDIF
+ORG 100h
+.386
 
 Main            PROC
                 call GetIDfromCon
@@ -150,7 +146,7 @@ chkSW7:         ;REGON
          reg14:
                 mov bx,OFFSET rEv
                 mov cx,13
-                mov cSum,0           ;2 raz dla REGON14
+                mov cSum,0
                 call CheckSum
                 mov ax,cSum
                 mov bx,11
@@ -165,7 +161,7 @@ chkSW7:         ;REGON
 
 chkSW8:         ;KSIEGA WIECZYSTA
                 cmp statSW,8
-                jne exit
+                jne chkSW9
                 mov bx,OFFSET wxv
                 mov cx,12
                 call CheckSum
@@ -175,21 +171,86 @@ chkSW8:         ;KSIEGA WIECZYSTA
                 cmp [id+12*2],dx
                 je verPoz
                 jmp verNeg
+chkSW9:
+                cmp statSW,9
+                jne chkSW10
+                cmp cx,0      ;CX=marker (cx=0 EAN13, cx=5 EAN8)
+                jne ean8
+                mov cx,12
+                mov bx,OFFSET exv
+                call CheckSum
+                mov ax,cSum
+                mov bx,10
+                div bx
+                mov ax,bx
+                sub ax,dx
+                xor dx,dx
+                div bx
+                cmp [id+12*2],dx
+                je verPOZ
+                jmp verNEG
+          ean8:
+                mov cx,7
+                mov bx,OFFSET exv+2
+                call CheckSum
+                mov ax,cSum
+                mov bx,10
+                div bx
+                mov ax,bx
+                sub ax,dx
+                xor dx,dx
+                div bx
+                cmp [id+7*2],dx
+                je verPOZ
+                jmp verNEG
+chkSW10:
+                cmp statSW,10
+                jne exit
+                cmp cx,2
+                je issn
+                ;isbn
+                mov cx,9
+                mov bx,OFFSET ixv
+                call CheckSum
+                mov bx,11
+                mov ax,cSum
+                div bx
+                mov ax,bx
+                sub ax,dx
+                xor dx,dx
+                div bx
+                cmp [id+9*2],dx
+                je verPOZ
+                jmp verNEG
+          issn:
+                mov cx,7
+                mov bx,OFFSET ixv+4
+                call CheckSum
+                mov bx,11
+                mov ax,cSum
+                div bx
+                mov ax,bx
+                sub ax,dx
+                xor dx,dx
+                div bx
+                cmp [id+7*2],dx
+                jne verNEG
+
+
+verPoz:         PRINTMSG pozMsg
+                mov al,CPOZ
+                call Colorize
+                jmp exit
+verNeg:         PRINTMSG negMsg
+                mov al,CNEG
+                call Colorize
+                jmp exit
+prnErrMsg1:     PRINTMSG errMsg1
+                jmp exit
+prnInfoMsg:     PRINTMSG infoMsg
 
 exit:
                 ret
-verPoz:
-                PRINTMSG pozMsg
-                jmp exit
-verNeg:
-                PRINTMSG negMsg
-                jmp exit
-prnErrMsg1:
-                PRINTMSG errMsg1
-                jmp exit
-prnInfoMsg:
-                PRINTMSG infoMsg
-                jmp exit
 
 EVENDATA
 cSum    DW 0
@@ -202,16 +263,44 @@ dxv     DW 7,3,1,9,7,3,1,7,3           ;DOW. OS.
 pxv     DW 9,7,3,1,9,7,3,1,9,7         ;PESEL
 rxv     DW 8,9,2,3,4,5,6,7             ;REGON9
 rEv     DW 2,4,8,5,0,9,7,3,6,1,2,4,8   ;REGON14
+exv     DW 1,3,1,3,1,3,1,3,1,3,1,3     ;EAN13 / EAN8 (EAN8=exv+1)
+ixv     DW 10,9,8,7,6,5,4,3,2          ;ISBN / ISSN (ISSN=ixv+2)
 statSW  DB 0
 
 errMsg1 DB 'Blad w numerze identyfikacyjnym / seryjnym.',13,10
-        DB "Pomoc: 'sprid.com /?'. Szczegolowe info w README.TXT",13,10,'$'
-negMsg  DB 9,'Ocena formalna: NEG',13,10,'$'
-pozMsg  DB 9,'Ocena formanla: POZ',13,10,'$'
+        DB 'Pomoc: sprid.com /?, szczegolowe info w README.TXT',13,10,'$'
+negMsg  DB 13,10,9,'Ocena formalna: NEG',13,10,13,10,'$'
+pozMsg  DB 13,10,9,'Ocena formanla: POZ',13,10,13,10,'$'
 
                 INCLUDE info.inc
 
 Main            ENDP
+
+Colorize        PROC
+                mov dx,0b800h
+                mov es,dx
+                mov ah,3
+                mov bh,0
+                int 10h
+                sub dh,2
+                add dl,25
+                xor bx,bx
+                mov bl,dh
+                shl bx,5
+                mov di,bx
+                shl bx,2
+                add di,bx
+                mov dh,0
+                shl dx,1
+                add di,dx
+                dec di      ;atrybut
+                stosb
+                inc di
+                stosb
+                inc di
+                stosb
+                ret
+Colorize        ENDP
 
                 INCLUDE gidc.inc
                 INCLUDE csum.inc

@@ -1,6 +1,4 @@
-;---------------------------------------------------/ Part of SPRID v2.0 /---
-; GetIDfromCon:PROC
-;--------------------------------------------------------------/ marikaz /---
+;--------------------------------------------------------/ Part of SPRID /---
 
 GetIDfromCon     PROC
                  LOCALS
@@ -23,28 +21,41 @@ GetIDfromCon     PROC
                  cmp al,'/'
                  jne @@exit
 
-                 ;switch
                  lodsb
-                 cmp al,'?'
-                 je @@exit
                  or al,100000b
-                 cmp al,'d'
-                 je @@switchD
-                 cmp al,'p'
-                 je @@switchP
-                 cmp al,'s'
-                 je @@switchS
                  cmp al,'b'
                  je @@switchB
-                 cmp al,'n'
-                 je @@switchN
+                 cmp al,'d'
+                 je @@switchD
+                 cmp al,'e'
+                 je @@switchE
+                 cmp al,'i'
+                 je @@switchI
                  cmp al,'k'
                  je @@switchK
+                 cmp al,'n'
+                 je @@switchN
+                 cmp al,'p'
+                 je @@switchP
                  cmp al,'r'
                  je @@switchR
+                 cmp al,'s'
+                 je @@switchS
                  cmp al,'w'
                  je @@switchW
                  jmp @@exit
+
+@@switchB:       ;---------------------------------------------------- /b ---
+                 lodsb
+                 cmp al,':'
+                 je @@b
+                 dec si
+            @@b:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,4
+                 mov cx,8
+                 jmp @@getDigits
 
 @@switchD:       ;---------------------------------------------------- /d ---
                  lodsb
@@ -52,7 +63,7 @@ GetIDfromCon     PROC
                  je @@d
                  dec si
             @@d:
-                 cmp BYTE PTR [si],'-' ;bez '-' przed numerem
+                 cmp BYTE PTR [si],'-'
                  je @@err1
                  mov statSW,1
                  mov cx,3
@@ -62,7 +73,7 @@ GetIDfromCon     PROC
                  jne @@skp0
                  lodsb
          @@skp0:
-                 and al,11011111b   ;zamien na duze
+                 and al,11011111b
                  cmp al,'A'
                  jb @@err1
                  cmp al,'Z'
@@ -71,6 +82,136 @@ GetIDfromCon     PROC
                  stosw
                  loop @@getLD
                  mov cx,6
+                 jmp @@getDigits
+
+@@switchE:       ;---------------------------------------------------- /e ---
+                 lodsb
+                 cmp al,':'
+                 je @@e
+                 dec si
+            @@e:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,9
+                 mov cx,13
+
+@@getDigitsE:
+                 lodsb
+                 cmp al,'-'
+                 jne @@skp10
+                 lodsb
+        @@skp10:
+                 cmp al,30h
+                 jb @@lLoopE
+                 cmp al,39h
+                 ja @@err1
+                 sub al,'0'
+                 stosw
+                 loop @@getDigitsE
+                 jmp @@skipBC
+       @@lLoopE:
+                 cmp cx,5
+                 jne @@err1
+                 dec si
+                 cmp BYTE PTR [si-1],'-'
+                 je @@err1
+                 jmp @@skipBC
+
+@@switchI:       ;---------------------------------------------------- /i ---
+                 lodsb
+                 cmp al,':'
+                 je @@i
+                 dec si
+            @@i:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,10
+                 mov cx,10
+
+@@getDigitsI:
+                 lodsb
+                 cmp al,'-'
+                 jne @@skp11
+                 lodsb
+        @@skp11:
+                 cmp al,30h
+                 jb @@chkISSN
+                 cmp al,39h
+                 ja @@chkX1
+                 sub al,30h
+                 stosw
+                 loop @@getDigitsI
+                 jmp  @@skipBC
+      @@chkISSN:
+                 cmp cx,2
+                 jne @@err1
+                 dec si                  ;korekta
+                 cmp byte ptr [si-1],'-'
+                 je @@err1
+                 jmp @@skipBC
+        @@chkX1:
+                 dec cx            ;korekta (bo nie cyfra)
+                 cmp cx,2
+                 jne @@chkX2
+                 or al,100000b
+                 cmp al,'x'
+                 jne @@err1
+                 mov al,10
+                 stosw
+                 jmp @@skipBC
+        @@chkX2:
+                 cmp cx,0
+                 jne @@err1
+                 or al,100000b
+                 cmp al,'x'
+                 jne @@err1
+                 mov al,10
+                 stosw
+                 jmp @@skipBC
+
+@@switchK:       ;---------------------------------------------------- /k ---
+                 lodsb
+                 cmp al,':'
+                 je @@k
+                 dec si
+            @@k:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,6
+                 mov cx,16
+
+@@getDigitsK:
+                 lodsb
+                 cmp al,'-'
+                 jne @@skp3
+                 lodsb
+         @@skp3:
+                 cmp al,30h
+                 jb @@lLoopK
+                 cmp al,39h
+                 ja @@err1
+                 sub al,'0'
+                 stosw
+                 loop @@getDigitsK
+                 jmp @@skipBC
+       @@lLoopK:
+                 cmp cx,3
+                 ja @@err1
+                 dec si
+                 cmp BYTE PTR [si-1],'-'
+                 je @@err1
+                 jmp @@skipBC
+
+@@switchN:       ;---------------------------------------------------- /n ---
+                 lodsb
+                 cmp al,':'
+                 je @@n
+                 dec si
+            @@n:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,5
+                 mov cx,10
                  jmp @@getDigits
 
 @@switchP:       ;---------------------------------------------------- /p ---
@@ -84,6 +225,39 @@ GetIDfromCon     PROC
                  mov statSW,2
                  mov cx,11
                  jmp @@getDigits
+
+@@switchR:       ;---------------------------------------------------- /r ---
+                 lodsb
+                 cmp al,':'
+                 je @@r
+                 dec si
+            @@r:
+                 cmp BYTE PTR [si],'-'
+                 je @@err1
+                 mov statSW,7
+                 mov cx,14
+
+@@getDigitsR:
+                 lodsb
+                 cmp al,'-'
+                 jne @@skp4
+                 lodsb
+         @@skp4:
+                 cmp al,30h
+                 jb @@lLoopR
+                 cmp al,39h
+                 ja @@err1
+                 sub al,'0'
+                 stosw
+                 loop @@getDigitsR
+                 jmp @@skipBC
+       @@lLoopR:
+                 cmp cx,5
+                 jne @@err1
+                 dec si
+                 cmp BYTE PTR [si-1],'-'
+                 je @@err1
+                 jmp @@skipBC
 
 @@switchS:       ;---------------------------------------------------- /s ---
                  lodsb
@@ -112,54 +286,6 @@ GetIDfromCon     PROC
                  mov cx,7
                  jmp @@getDigits
 
-@@switchB:       ;---------------------------------------------------- /b ---
-                 lodsb
-                 cmp al,':'
-                 je @@b
-                 dec si
-            @@b:
-                 cmp BYTE PTR [si],'-'
-                 je @@err1
-                 mov statSW,4
-                 mov cx,8
-                 jmp @@getDigits
-
-@@switchN:       ;---------------------------------------------------- /n ---
-                 lodsb
-                 cmp al,':'
-                 je @@n
-                 dec si
-            @@n:
-                 cmp BYTE PTR [si],'-'
-                 je @@err1
-                 mov statSW,5
-                 mov cx,10
-                 jmp @@getDigits
-
-@@switchK:       ;---------------------------------------------------- /k ---
-                 lodsb
-                 cmp al,':'
-                 je @@k
-                 dec si
-            @@k:
-                 cmp BYTE PTR [si],'-'
-                 je @@err1
-                 mov statSW,6
-                 mov cx,16
-                 jmp @@getDigitsK
-
-@@switchR:       ;---------------------------------------------------- /r ---
-                 lodsb
-                 cmp al,':'
-                 je @@r
-                 dec si
-            @@r:
-                 cmp BYTE PTR [si],'-'
-                 je @@err1
-                 mov statSW,7
-                 mov cx,14
-                 jmp @@getDigitsR
-
 @@switchW:       ;---------------------------------------------------- /w ---
                  lodsb
                  cmp al,':'
@@ -168,80 +294,9 @@ GetIDfromCon     PROC
             @@w:
                  cmp BYTE PTR [si],'-'
                  je @@err1
-                 cmp BYTE PTR [si],'/'
-                 je @@err1
                  mov statSW,8
-                 jmp @@getDigitsW
 
-
-;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ GDS +++
-@@getDigits:
-                 lodsb
-                 cmp al,'-'
-                 jne @@skp2       ; .
-                 lodsb            ;  Zabronione 2 (i wiecej) separatory
-         @@skp2:                  ; / obok siebie
-                 cmp al,30h
-                 jb @@err1
-                 cmp al,39h
-                 ja @@err1
-                 sub al,'0'
-                 stosw
-                 loop @@getDigits
-                 jmp @@skipBC
-
-@@getDigitsK:    ;-------------------------------------------------- GD-K ---
-                 lodsb
-                 cmp al,'-'
-                 jne @@skp3
-                 lodsb
-         @@skp3:
-                 cmp al,30h
-                 jb @@err1
-                 cmp al,39h
-                 ja @@err1
-                 sub al,'0'
-                 stosw
-                 cmp BYTE PTR [si],'-'
-                 je @@loopGDK
-                 cmp BYTE PTR [si],30h
-                 jb @@endGDK
-      @@loopGDK:
-                 loop @@getDigitsK
-       @@endGDK:
-                 dec cx          ;korekta
-                 cmp cx,3
-                 ja @@err1
-                 jmp @@skipBC
-
-@@getDigitsR:    ;-------------------------------------------------- GD-R ---
-                 lodsb
-                 cmp al,'-'
-                 jne @@skp4
-                 lodsb
-         @@skp4:
-                 cmp al,30h
-                 jb @@err1
-                 cmp al,39h
-                 ja @@err1
-                 sub al,'0'
-                 stosw
-                 cmp BYTE PTR [si],'-'
-                 je @@skpR
-                 cmp BYTE PTR [si],30h
-                 jb @@lLoopR
-         @@skpR:
-                 loop @@getDigitsR
-       @@lLoopR:
-                 dec cx          ;korekta
-                 cmp cx,0
-                 je @@skipBC
-                 cmp cx,5
-                 jne @@err1
-                 jmp @@skipBC
-
-@@getDigitsW:    ;-------------------------------------------------- GD-W ---
-                 ;LL
+                 ;LL**/********/*
                  mov cx,2
         @@getDW:
                  lodsb
@@ -252,7 +307,7 @@ GetIDfromCon     PROC
                  and al,11011111b
                  cmp al,'X'
                  jne @@skpX0
-                 mov al,10
+                 mov al,10          ;Wartosc dla X = 10
                  stosw
                  jmp @@loopGDW
         @@skpX0:
@@ -264,7 +319,7 @@ GetIDfromCon     PROC
                  je @@err1
                  sub al,54
                  cmp al,26
-                 ja @@subQ0
+                 ja @@subQ0 ;odejmij 1 od wartosci liter > Q
                  stosw
                  jmp @@loopGDW
         @@subQ0:
@@ -273,7 +328,7 @@ GetIDfromCon     PROC
       @@loopGDW:
                  loop @@getDW
 
-                 ;D
+                 ;**D*/********/*
                  lodsb
                  cmp al,'-'
                  jne @@skp6
@@ -286,7 +341,7 @@ GetIDfromCon     PROC
                  sub al,'0'
                  stosw
 
-                 ;L
+                 ;***L/********/*
                  lodsb
                  cmp al,'-'
                  jne @@skp7
@@ -295,7 +350,7 @@ GetIDfromCon     PROC
                  and al,11011111b
                  cmp al,'X'
                  jne @@skpX1
-                 mov al,10
+                 mov al,10         ;Wartosc dla X = 10
                  stosw
                  jmp @@get8dig
         @@skpX1:
@@ -313,9 +368,8 @@ GetIDfromCon     PROC
                  dec al
         @@storL:
                  stosw
-
       @@get8dig:
-                 ;DDDDDDDD
+                 ;****/DDDDDDDD/*
                  mov cx,8
                  lodsb
                  cmp al,'/'
@@ -336,7 +390,7 @@ GetIDfromCon     PROC
                  stosw
                  loop @@getDigW
 
-                 ;C
+                 ;****/********/C
                  lodsb
                  cmp al,'/'
                  je @@skp1s
@@ -353,19 +407,45 @@ GetIDfromCon     PROC
                  ja @@err1
                  sub al,'0'
                  stosw
+                 jmp @@skipBC
+
+
+@@getDigits:
+                 lodsb
+                 cmp al,'-'
+                 jne @@skp2
+                 lodsb
+         @@skp2:
+                 cmp al,30h
+                 jb @@err1
+                 cmp al,39h
+                 ja @@err1
+                 sub al,'0'
+                 stosw
+                 loop @@getDigits
 
 @@skipBC:
                  lodsb
                  cmp al,20h
-                 je @@skipBC
+                 je @@skipBC2
                  cmp al,9
-                 je @@skipBC
+                 je @@skipBC2
                  cmp al,0dh
-                 jne @@err1
+                 je @@exit
+                 jmp @@err1
+@@skipBC2:
+                 lodsb
+                 cmp al,20h
+                 je @@skipBC2
+                 cmp al,9
+                 je @@skipBC2
+                 cmp al,0dh
+                 je @@exit
+                 mov statSW,0
 
 @@exit:
-                  ret
+                 ret
 @@err1:
-                  mov ax,-1        ;blad linii polecen
-                  ret
-GetIDfromCon      ENDP
+                 mov ax,-1        ;blad linii polecen
+                 ret
+GetIDfromCon     ENDP
