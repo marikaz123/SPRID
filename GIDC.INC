@@ -2,7 +2,7 @@
 
 GetIDfromCon     PROC
                  LOCALS
-
+                 cld
                  mov si,80h
                  cmp BYTE PTR [si],1
                  je @@exit
