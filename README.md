@@ -1,7 +1,7 @@
 ## SPRID ver. 2.0 ++ Sprawdz Numer Identyfikacyjny ++ dla DOS (DOSBox)
 <sup>MOD0923, w ramach odkurzania starych dyskietek...</sup>
 
-Program sprawdza pod względem FORMALNYM poprawność niektórych numerów ewidencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje natomiast ich SENSOWNOŚCI. Oznacza to, że sprawdzany numer jest potencjalnie prawidłowy, ale nie ma gwarancji co do jego autentyczności.
+Program sprawdza pod względem FORMALNYM poprawność niektórych numerów ewidencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje natomiast ich SENSOWNOŚCI. Oznacza to, że sprawdzany numer z oceną POZ jest potencjalnie prawidłowy, ale nie ma gwarancji co do jego autentyczności. Ocena NEG z kolei stwierdza jednoznacznie, że dany numer nie jest poprawny i nie powinien wysąpić w żadnym dokumencie.
 
 ### OBSŁUGA
 ```
