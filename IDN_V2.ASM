@@ -1,31 +1,34 @@
 ;----------------------------------------------------------------------------
-; ** SPRawdz numer IDentyfikacyjny :: SPRID v2.1 :: MOD1023 **
+; Sprawdz numer Identyfikacyjny :: SPRID v2.3 :: MOD0724
 ;----------------------------------------------------------------------------
 ; Program sprawdza pod wzgledem formalnym poprawnosc niektorych numerow
 ; ewidencyjnych i seryjnych.
 ;--------------------------------------------------------------/ marikaz /---
 
-         CPOZ = 2
-         CNEG = 4
-
-PRINTMSG MACRO msg
-         mov dx,OFFSET msg
-         mov ah,9
-         int 21h
-         ENDM
-
 _TEXT SEGMENT WORD PUBLIC 'CODE'
       ASSUME cs:_TEXT
+
+      PUBLIC iban_PL,id,statSW
+      EXTRN  ChkIBAN:PROC,GetIDfromCon:PROC
+
+      PRINTMSG MACRO msg
+               mov dx,OFFSET msg
+               mov ah,9
+               int 21h
+               ENDM
+
+CPOZ = 2 ;  . Atrybut dla napisu
+CNEG = 4 ;.
+
 ORG 100h
 .386
 
 Main            PROC
                 call GetIDfromCon
-                cmp ax,-1          ;blad w linii cmd
+                cmp ax,1
+                je prnInfoMsg
+                cmp ax,2
                 je prnErrMsg1
-                cmp statSW,0       ;blad danych
-                jne chkSW1
-                jmp prnInfoMsg
 chkSW1:         ;DOWOD
                 cmp statSW,1
                 jne chkSW2
@@ -62,7 +65,7 @@ chkSW3:         ;PASZPORT
                 or dx,dx
                 jz verPoz
                 jmp verNeg
-chkSW4:         ;BANK (oddzial)
+chkSW4:         ;ID BANKU
                 cmp statSW,4
                 jne chkSW5
                 mov bx,OFFSET bxv
@@ -102,25 +105,25 @@ chkSW6:         ;NUMER KARTY
                 sub si,cx
                 mov cx,ax
                 std
-                rep movsw           ;numery < 16 cyfr wyrownaj do prawej.
+                rep movsw ;rown.do prawej
                 pop cx
                 mov ax,0
-                rep stosw           ;dopelnij do 16 cyfr zerami
+                rep stosw ;dop.zer
                 cld
      skipAlign:
-                mov cx,8
+                mov cx,8 ;!
                 mov bx,10
                 call CheckSumK
                 mov ax,cSum
                 xor dx,dx
                 div bx
                 or dx,dx
-                je verPoz
+                jz verPoz
                 jmp verNeg
 chkSW7:         ;REGON
                 cmp statSW,7
                 jne chkSW8
-                mov [id+30],cx        ;marker dlugosci (5=9c, 0=14c)
+                mov [id+30],cx ;(cx=5:9c, cx=0:14c)
                 mov cx,8
                 mov bx,OFFSET rxv
                 call CheckSum
@@ -149,9 +152,9 @@ chkSW7:         ;REGON
                 mov dx,0
          skp14:
                 cmp [id+13*2],dx
-                jne verNeg
-                jmp verPoz
-chkSW8:         ;KSIEGA WIECZYSTA
+                je verPoz
+                jmp verNeg
+chkSW8:         ;KSIEGA W.
                 cmp statSW,8
                 jne chkSW9
                 mov bx,OFFSET wxv
@@ -163,10 +166,10 @@ chkSW8:         ;KSIEGA WIECZYSTA
                 cmp [id+12*2],dx
                 je verPoz
                 jmp verNeg
-chkSW9:
+chkSW9:         ;EAN
                 cmp statSW,9
                 jne chkSW10
-                cmp cx,0      ;CX=marker (cx=0 EAN13, cx=5 EAN8)
+                cmp cx,0      ;cx=0 EAN13, cx=5 EAN8
                 jne ean8
                 mov cx,12
                 mov bx,OFFSET exv
@@ -179,8 +182,8 @@ chkSW9:
                 xor dx,dx
                 div bx
                 cmp [id+12*2],dx
-                je verPOZ
-                jmp verNEG
+                je verPoz
+                jmp verNeg
           ean8:
                 mov cx,7
                 mov bx,OFFSET exv+2
@@ -193,14 +196,13 @@ chkSW9:
                 xor dx,dx
                 div bx
                 cmp [id+7*2],dx
-                je verPOZ
-                jmp verNEG
-chkSW10:
+                je verPoz
+                jmp verNeg
+chkSW10:        ;ISBN/ISSN
                 cmp statSW,10
-                jne exit
+                jne chkSW11
                 cmp cx,2
                 je issn
-                ;isbn
                 mov cx,9
                 mov bx,OFFSET ixv
                 call CheckSum
@@ -226,16 +228,39 @@ chkSW10:
                 xor dx,dx
                 div bx
                 cmp [id+7*2],dx
-                jne verNEG
+                je verPoz
+                jmp verNeg
+chkSW11:        ;IBAN
+                cmp statSW,11
+                jne prnInfoMsg
+                mov si,OFFSET iban_PL  ;spr.ID banku
+                mov di,OFFSET id
+                mov cx,8
+         mvIDb:
+                movsb
+                inc di
+                loop mvIDb
+                mov bx,OFFSET bxv
+                mov cx,8
+                call CheckSum
+                mov bx,10
+                mov ax,cSum
+                div bx
+                or dx,dx
+                jnz verNeg
+                call ChkIBAN
+                cmp ax,100h
+                jne verNeg
+
 verPoz:
                 PRINTMSG pozMsg
                 mov al,CPOZ
-                call PColor
+                call PutColor
                 jmp exit
 verNeg:
                 PRINTMSG negMsg
                 mov al,CNEG
-                call PColor
+                call PutColor
                 jmp exit
 prnErrMsg1:
                 PRINTMSG errMsg1
@@ -244,32 +269,9 @@ prnInfoMsg:
                 PRINTMSG infoMsg
 exit:
                 ret
-
-EVENDATA
-cSum    DW 0
-id      DW 16 DUP (0)
-wxv     DW 1,3,7,1,3,7,1,3,7,1,3,7     ;Nowa KW
-nxv     DW 6,5,7,2,3,4,5,6,7           ;NIP
-bxv     DW 3,9,7,1,3,9,7,1             ;BANK (oddzial)
-sxv     DW 7,3,9,1,7,3,1,7,3           ;PASZPORT
-dxv     DW 7,3,1,9,7,3,1,7,3           ;DOW. OS.
-pxv     DW 9,7,3,1,9,7,3,1,9,7         ;PESEL
-rxv     DW 8,9,2,3,4,5,6,7             ;REGON9
-rEv     DW 2,4,8,5,0,9,7,3,6,1,2,4,8   ;REGON14
-exv     DW 1,3,1,3,1,3,1,3,1,3,1,3     ;EAN13 / EAN8 (EAN8=exv+1)
-ixv     DW 10,9,8,7,6,5,4,3,2          ;ISBN / ISSN (ISSN=ixv+2)
-statSW  DB 0
-
-errMsg1 DB 'Blad w numerze identyfikacyjnym / seryjnym.',13,10
-        DB 'Pomoc: sprid.com /?, szczegolowe info w README.TXT',13,10,'$'
-negMsg  DB 13,10,9,'Ocena formalna: NEG',13,10,13,10,'$'
-pozMsg  DB 13,10,9,'Ocena formanla: POZ',13,10,13,10,'$'
-
-                INCLUDE info.inc
-
 Main            ENDP
 
-PColor          PROC
+PutColor        PROC
                 mov dx,0b800h
                 mov es,dx
                 mov ah,3
@@ -286,17 +288,37 @@ PColor          PROC
                 mov dh,0
                 shl dx,1
                 add di,dx
-                dec di      ;atrybut
+                dec di
                 stosb
                 inc di
                 stosb
                 inc di
                 stosb
                 ret
-PColor          ENDP
+PutColor        ENDP
 
-                INCLUDE gidc.inc
                 INCLUDE csum.inc
+
+cSum    DW 0
+statSW  DB 0
+id      DW 16 DUP (0)
+iban_PL DB 24 DUP (?),2,5,2,1,?,?          ;2,5 = P  2,1 = L
+wxv     DW 1,3,7,1,3,7,1,3,7,1,3,7         ;Nowa KW
+nxv     DW 6,5,7,2,3,4,5,6,7               ;NIP
+bxv     DW 3,9,7,1,3,9,7,1                 ;BANK ID
+sxv     DW 7,3,9,1,7,3,1,7,3               ;PASZPORT
+dxv     DW 7,3,1,9,7,3,1,7,3               ;DOW. OS.
+pxv     DW 9,7,3,1,9,7,3,1,9,7             ;PESEL
+rxv     DW 8,9,2,3,4,5,6,7                 ;REGON9
+rEv     DW 2,4,8,5,0,9,7,3,6,1,2,4,8       ;REGON14
+exv     DW 1,3,1,3,1,3,1,3,1,3,1,3         ;EAN13 / EAN8 (EAN8=exv+1)
+ixv     DW 10,9,8,7,6,5,4,3,2              ;ISBN / ISSN (ISSN=ixv+2)
+
+errMsg1 DB 'Blad w numerze identyfikacyjnym. Pomoc: sprid.com /?, README.TXT',13,10,'$'
+negMsg  DB 13,10,9,'Ocena formalna: NEG',13,10,13,10,'$'
+pozMsg  DB 13,10,9,'Ocena formanla: POZ',13,10,13,10,'$'
+
+                INCLUDE info.inc
 
 _TEXT           ENDS
                 END Main

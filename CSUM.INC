@@ -1,4 +1,4 @@
-;--------------------------------------------------------/ Part of SPRID /---
+;-----------------------------------------------------------/ SPRID v2.3 /---
 
 CheckSum        PROC
                 LOCALS
@@ -15,20 +15,21 @@ CheckSum        ENDP
 
 CheckSumK       PROC
                 LOCALS
+                mov bx,10
                 mov si,OFFSET id
           @@do:
                 lodsw
                 shl ax,1
                 cmp ax,9
-                ja @@2dig
+                ja @@2d
                 add cSum,ax
-                jmp @@1dig
-        @@2dig:
+                jmp @@1d
+          @@2d:
                 xor dx,dx
                 div bx
                 add cSum,ax
                 add cSum,dx
-        @@1dig:
+          @@1d:
                 lodsw
                 add cSum,ax
                 loop @@do
