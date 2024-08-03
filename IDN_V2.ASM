@@ -1,5 +1,5 @@
 ;----------------------------------------------------------------------------
-; Sprawdz numer Identyfikacyjny :: SPRID v2.3 :: MOD0724
+; Sprawdz numer Identyfikacyjny :: SPRID v2.4 :: MOD0724
 ;----------------------------------------------------------------------------
 ; Program sprawdza pod wzgledem formalnym poprawnosc niektorych numerow
 ; ewidencyjnych i seryjnych.
@@ -8,21 +8,21 @@
 _TEXT SEGMENT WORD PUBLIC 'CODE'
       ASSUME cs:_TEXT
 
-      PUBLIC iban_PL,id,statSW
-      EXTRN  ChkIBAN:PROC,GetIDfromCon:PROC
+PUBLIC iban_PL,id,statSW
+EXTRN  ChkIBAN:PROC,GetIDfromCon:PROC
 
-      PRINTMSG MACRO msg
-               mov dx,OFFSET msg
-               mov ah,9
-               int 21h
-               ENDM
+PRINTMSG MACRO msg
+         mov dx,OFFSET msg
+         mov ah,9
+         int 21h
+         ENDM
 
-CPOZ = 2 ;  . Atrybut dla napisu
-CNEG = 4 ;.
+CPOZ  = 2     ;  . Atrybut dla napisu
+CNEG  = 4     ;.
+IDLEN = 32d
 
-ORG 100h
 .386
-
+ORG 100h
 Main            PROC
                 call GetIDfromCon
                 cmp ax,1
@@ -34,7 +34,7 @@ chkSW1:         ;DOWOD
                 jne chkSW2
                 mov bx,OFFSET dxv
                 mov cx,9
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -46,7 +46,7 @@ chkSW2:         ;PESEL
                 jne chkSW3
                 mov bx,OFFSET pxv
                 mov cx,10
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -58,7 +58,7 @@ chkSW3:         ;PASZPORT
                 jne chkSW4
                 mov bx,OFFSET sxv
                 mov cx,9
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -70,7 +70,7 @@ chkSW4:         ;ID BANKU
                 jne chkSW5
                 mov bx,OFFSET bxv
                 mov cx,8
-                call CheckSum
+                call CheckSumW
                 mov bx,10
                 mov ax,cSum
                 div bx
@@ -82,7 +82,7 @@ chkSW5:         ;NIP
                 jne chkSW6
                 mov bx,OFFSET nxv
                 mov cx,9
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,11
                 div bx
@@ -94,26 +94,25 @@ chkSW5:         ;NIP
 chkSW6:         ;NUMER KARTY
                 cmp statSW,6
                 jne chkSW7
-                or cx,cx
-                jz skipAlign
-                mov ax,16
+                ;mov ax,19    ;max dla karty
+                 mov ax,16
                 sub ax,cx
+                mov cx,IDLEN
+                sub cx,ax
                 push cx
                 shl cx,1
-                lea di,[id+15*2]
+                lea di,[id+(IDLEN-1)*2]
                 mov si,di
                 sub si,cx
                 mov cx,ax
                 std
-                rep movsw ;rown.do prawej
+                rep movsw ;do prawej
                 pop cx
                 mov ax,0
-                rep stosw ;dop.zer
+                rep stosw
                 cld
-     skipAlign:
-                mov cx,8 ;!
-                mov bx,10
-                call CheckSumK
+                mov cx,IDLEN SHR 1 ;!
+                call CheckSumL
                 mov ax,cSum
                 xor dx,dx
                 div bx
@@ -126,7 +125,7 @@ chkSW7:         ;REGON
                 mov [id+30],cx ;(cx=5:9c, cx=0:14c)
                 mov cx,8
                 mov bx,OFFSET rxv
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,11
                 div bx
@@ -143,7 +142,7 @@ chkSW7:         ;REGON
                 mov bx,OFFSET rEv
                 mov cx,13
                 mov cSum,0
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,11
                 div bx
@@ -159,7 +158,7 @@ chkSW8:         ;KSIEGA W.
                 jne chkSW9
                 mov bx,OFFSET wxv
                 mov cx,12
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -173,7 +172,7 @@ chkSW9:         ;EAN
                 jne ean8
                 mov cx,12
                 mov bx,OFFSET exv
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -187,7 +186,7 @@ chkSW9:         ;EAN
           ean8:
                 mov cx,7
                 mov bx,OFFSET exv+2
-                call CheckSum
+                call CheckSumW
                 mov ax,cSum
                 mov bx,10
                 div bx
@@ -205,7 +204,7 @@ chkSW10:        ;ISBN/ISSN
                 je issn
                 mov cx,9
                 mov bx,OFFSET ixv
-                call CheckSum
+                call CheckSumW
                 mov bx,11
                 mov ax,cSum
                 div bx
@@ -219,7 +218,7 @@ chkSW10:        ;ISBN/ISSN
           issn:
                 mov cx,7
                 mov bx,OFFSET ixv+4
-                call CheckSum
+                call CheckSumW
                 mov bx,11
                 mov ax,cSum
                 div bx
@@ -232,8 +231,8 @@ chkSW10:        ;ISBN/ISSN
                 jmp verNeg
 chkSW11:        ;IBAN
                 cmp statSW,11
-                jne prnInfoMsg
-                mov si,OFFSET iban_PL  ;spr.ID banku
+                jne chkSW12
+                mov si,OFFSET iban_PL
                 mov di,OFFSET id
                 mov cx,8
          mvIDb:
@@ -242,15 +241,45 @@ chkSW11:        ;IBAN
                 loop mvIDb
                 mov bx,OFFSET bxv
                 mov cx,8
-                call CheckSum
+                call CheckSumW
                 mov bx,10
                 mov ax,cSum
                 div bx
                 or dx,dx
                 jnz verNeg
                 call ChkIBAN
-                cmp ax,100h
-                jne verNeg
+                cmp ax,1
+                je verPoz
+                jmp verNeg
+chkSW12:
+                cmp statSW,12
+                jne prnInfoMsg
+                or cx,cx
+                jz skipL
+                mov ax,IDLEN
+                sub ax,cx
+                mov cx,IDLEN
+                sub cx,ax
+                push cx
+                shl cx,1
+                lea di,[id+(IDLEN-1)*2]
+                mov si,di
+                sub si,cx
+                mov cx,ax
+                std
+                rep movsw ;wrow. do prawej
+                pop cx
+                mov ax,0  ;i dop. 0
+                rep stosw
+         skipL:
+                cld
+                mov cx,IDLEN SHR 1
+                call CheckSumL
+                mov ax,cSum
+                xor dx,dx
+                div bx
+                or dx,dx
+                jnz verNeg
 
 verPoz:
                 PRINTMSG pozMsg
@@ -297,11 +326,10 @@ PutColor        PROC
                 ret
 PutColor        ENDP
 
-                INCLUDE csum.inc
-
+                INCLUDE csum.asm
+EVENDATA
+id      DW IDLEN DUP (?)  ;NUMER
 cSum    DW 0
-statSW  DB 0
-id      DW 16 DUP (0)
 iban_PL DB 24 DUP (?),2,5,2,1,?,?          ;2,5 = P  2,1 = L
 wxv     DW 1,3,7,1,3,7,1,3,7,1,3,7         ;Nowa KW
 nxv     DW 6,5,7,2,3,4,5,6,7               ;NIP
@@ -313,12 +341,13 @@ rxv     DW 8,9,2,3,4,5,6,7                 ;REGON9
 rEv     DW 2,4,8,5,0,9,7,3,6,1,2,4,8       ;REGON14
 exv     DW 1,3,1,3,1,3,1,3,1,3,1,3         ;EAN13 / EAN8 (EAN8=exv+1)
 ixv     DW 10,9,8,7,6,5,4,3,2              ;ISBN / ISSN (ISSN=ixv+2)
+statSW  DB 0
 
-errMsg1 DB 'Blad w numerze identyfikacyjnym. Pomoc: sprid.com /?, README.TXT',13,10,'$'
+errMsg1 DB 'Blad w numerze ID. Pomoc: sprid.com /?, README.TXT',13,10,'$'
 negMsg  DB 13,10,9,'Ocena formalna: NEG',13,10,13,10,'$'
 pozMsg  DB 13,10,9,'Ocena formanla: POZ',13,10,13,10,'$'
 
-                INCLUDE info.inc
+        INCLUDE info.inc
 
 _TEXT           ENDS
                 END Main

@@ -1,22 +1,25 @@
-;-----------------------------------------------------------/ SPRID v2.3 /---
+;-------------------------------------------------------------/ SPRID v2 /---
+; CheckSumW : Suma kontrolna oparta o wagi
+; CheckSumL : Suma kontrolna liczona algorytmem Luhn'a - zmodyfikowanym
+;----------------------------------------------------------------------------
 
-CheckSum        PROC
+CheckSumW       PROC
                 LOCALS
                 mov si,OFFSET id
                 xor dx,dx
           @@do:
                 lodsw
-                mul WORD PTR [bx]
+                mul WORD PTR [bx] ;bx=wsk. na wagi
                 add cSum,ax
                 add bx,2
                 loop @@do
                 ret
-CheckSum        ENDP
+CheckSumW       ENDP
 
-CheckSumK       PROC
+CheckSumL       PROC
                 LOCALS
-                mov bx,10
                 mov si,OFFSET id
+                mov bx,10
           @@do:
                 lodsw
                 shl ax,1
@@ -34,4 +37,4 @@ CheckSumK       PROC
                 add cSum,ax
                 loop @@do
                 ret
-CheckSumK       ENDP
+CheckSumL       ENDP

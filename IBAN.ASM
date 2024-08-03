@@ -1,12 +1,14 @@
-;-/ ChkIBAN:PROC rev. A /-----------------------------------/ SPRID v2.3 /---
+;-/ ChkIBAN:PROC rev. A /-------------------------------------/ SPRID v2 /---
 ;
 ; 0) PL 54 2060 1041 0343 8498 7077 5852   <- numer pozyskany z generatora
 ;                                             internetowego.
-; 1) 206010410343849870775852PL54       \
-; 2) P=25, L=21                             > w GetIDfromCon
-; 3) 206010410343849870775852252154     /
-;    W ChkIBAN:
-; 4) 206010410343849870775852252154 MOD 97 == 1 ? POZ : NEG      (tu 100h)
+; GetIDfromCon:
+; 1) 206010410343849870775852PL54
+; 2) P=25, L=21
+; 3) 206010410343849870775852252154
+;
+; ChkIBAN:
+; 4) 206010410343849870775852252154 MOD 97 == 1 ? POZ : NEG
 ;
 ;--------------------------------------------------------------/ marikaz /---
 
@@ -71,6 +73,7 @@ ChkIBAN         PROC
                 loop @@1
                 cld
                 mov ax,WORD PTR [@@tmp]
+                xchg al,ah
                 ret
 EVENDATA
 @@axv DD 97

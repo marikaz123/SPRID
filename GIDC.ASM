@@ -1,4 +1,4 @@
-;-/ GetIDformCon:PROC rev. B /------------------------------/ SPRID v2.3 /---
+;-/ GetIDformCon:PROC rev. B /--------------------------------/ SPRID v2 /---
 
 .MODEL TINY
 .CODE
@@ -59,8 +59,8 @@ EXTRN  id:WORD
 GetIDfromCon    PROC
                 LOCALS
                 mov si,80h
-                cmp BYTE PTR [si],4 ;brak id
-                jbe @@ecl
+                cmp BYTE PTR [si],3 ;brak id
+                jb @@ecl
                 inc si
 skpBCH:
                 cmp BYTE PTR [si],TAB
@@ -93,6 +93,8 @@ switch:
                 je caseI
                 cmp al,'k'
                 je caseK
+                cmp al,'l'
+                je caseL
                 cmp al,'n'
                 je caseN
                 cmp al,'p'
@@ -231,14 +233,29 @@ caseI:          ;ISBN / ISSN
 caseK:          ;KARTA KREDYTOWA
                 mov statSW,6
                 SKIPCOL
-                mov cx,16
+                ;mov cx,19     ;max dl. nr karty
+                 mov cx,16
                 call _GDIDFC
                 jc @@esn
                 cmp BYTE PTR [si-1],SEP
                 je @@esn
-                dec cx       ;!
-                cmp cx,3
-                ja @@esn     ;cx <0,3>
+                dec cx
+                ;cmp cx,7
+                 cmp cx,3       ;min. dl. nr karty (16-3)
+                ja @@esn
+                jmp @@eop
+;--------------------------------------------------------------------- /L ---
+caseL:          ;LUHN ALG.
+                mov statSW,12
+                SKIPCOL
+                mov cx,32 ;max
+                call _GDIDFC
+                jc @@esn
+                cmp BYTE PTR [si-1],SEP
+                je @@esn
+                dec cx  ;!
+                cmp cx,30
+                ja @@esn
                 jmp @@eop
 ;--------------------------------------------------------------------- /N ---
 caseN:          ;NIP (PL)
@@ -298,7 +315,7 @@ caseW:          ;KSIEGA W.
                 mov statSW,8
                 SKIPCOL
                 mov cx,2
-          @@LL: ;LLCA/XXXXXXXX/K : bez Q i V, X=10
+          @@LL: ;LLCA/XXXXXXXX/K
                 lodsb
                 CHKALPHA
                 cmp al,'X'
@@ -307,12 +324,12 @@ caseW:          ;KSIEGA W.
                 jmp @@skP
          @@noX:
                 sub al,'A'-11
-                cmp al,26       ;.
-                jbe @@skP       ;.
-                sub al,1        ; . korekta wartosci dla liter:
-                cmp al,30       ;.  po P nie ma Q i po U nie ma V
-                jna @@skP       ;.
-                sub al,1        ;.
+                cmp al,26
+                jbe @@skP      ;korekta wartosci dla liter:
+                sub al,1       ;po P nie ma Q i po U nie ma V
+                cmp al,30
+                jna @@skP
+                sub al,1
          @@skP:
                 stosw
                 cmp BYTE PTR [si],SEP
@@ -372,6 +389,7 @@ caseW:          ;KSIEGA W.
                 stosw
                 cmp BYTE PTR [si],SEP
                 je @@esn
+
 ;----------------------------------------------------------------------------
 @@eop:
                 cmp BYTE PTR [si],CR
@@ -388,7 +406,7 @@ exitp:
                 mov ax,0
                 ret
 @@ecl:
-                mov ax,1
+                mov ax,10
                 ret
 @@esn:
                 mov ax,2

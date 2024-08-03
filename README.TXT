@@ -1,21 +1,24 @@
 -----------------------------------------------------------------------------
-     ** Sprawdz Numer Identyfikacyjny **
-     **        SPRID ver. 2.3         **                   (c)1994 'marikaz'
+     **  Sprawdz Numer Identyfikacyjny  **
+     **         SPRID ver. 2.4          **                 (c)1994 'marikaz'
 -----------------------------------------------------------------------------
                                                                      MOD0724
 
 Program sprawdza pod wzgledem FORMALNYM poprawnosc niektorych numerow
 ewidencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje
-jednak ich SENSOWNOSCI poza (czesciowo) REGON14 i IBAN.
+natomiast ich SENSOWNOSCI poza (czesciowo) REGON14 i IBAN.
+
 W aktualnej wersji (od v2.0) SPRID pracuje z OBECNIE (2023 rok) nadawanymi
 w dokumentach numerami.
 
-     OCENA POZ
+
+     OCENA: POZ
      oznacza, ze sprawdzany numer jest potencjalnie prawidlowy
      czylijest zgodny ze wzorcem nadawania tego numeru, ale nie
      ma gwarancji, ze kiedykolwiek zostal nadany.
 
-     OCENA NEG
+
+     OCENA: NEG
      stwierdza jednoznacznie, ze numer jest NIEPRAWIDLOWY i nie
      powinien sie znalezsc w zadnym dokumencie.
 
@@ -24,26 +27,29 @@ w dokumentach numerami.
      -------
 
 Skladnia:
-          SPRID.COM {OPCJE[:]}<ID>
+           SPRID.COM {OPCJE[:]}<ID>
 
    OPCJE:
-          /a[:]  IBAN (tylko PL)
-          /b[:]  Numer ID Banku
-          /d[:]  Dowod Osobisty
-          /e[:]  EAN (8 lub 13 cyfr)
-          /i[:]  ISBN/ISSN (stare) -> patrz Uwagi
-          /k[:]  Numer Karty Platniczej
-          /n[:]  NIP (tylko PL)
-          /p[:]  PESEL
-          /r[:]  REGON (9 lub 14 cyfr - patrz UWAGI)
-          /s[:]  Paszport
-          /w[:]  Numer Ksiegi Wieczystej (nowej)
+           /A[:]  IBAN (tylko PL) *
+           /B[:]  Numer ID Banku *
+           /D[:]  Dowod Osobisty
+           /E[:]  EAN (8 lub 13 cyfr)
+           /I[:]  ISBN/ISSN (stare) *
+           /K[:]  Numer Karty Platniczej *
+           /N[:]  NIP (tylko PL)
+           /L[:]  Algorytm Luhn'a *
+           /P[:]  PESEL
+           /R[:]  REGON (9 lub 14) *
+           /S[:]  Paszport
+           /W[:]  Numer Ksiegi Wieczystej (nowej) *
 
       ID:
-          Jak w dokumencie (bez spacji)
+           Jak w dokumencie (bez spacji)
 
     Info:
           SPRID.COM /?
+
+* Patrz uwagi.
 
 Linia polecen:
 
@@ -52,7 +58,7 @@ Linia polecen:
 - Separatory nie moga wystepowac bezposrednio po sobie oraz przed i po
   numerze.
 - Wielkosc liter w opcjach i identyfikatorach nie ma znaczenia.
-- Obcy znak w linii polecen wyswietli info (/?), natomiast blad w numerze
+- Obcy znak w linii polecen wyswietli info jak /?, natomiast blad w numerze
   identyfikacyjnym poda komunikat:
 
       Blad w numerze identyfikacyjnym.
@@ -71,7 +77,7 @@ Dla ID banku prawidlowa linia polecen wyglada:
 
 - IBAN, opcja /A
   Tylko numery rachunkow nadawane w Polsce.
-  W zwiazku z tym, prefix PL jest domyslny i mozna go pominac.
+  W zwiazku z tym prefix PL jest domyslny i mozna go pominac.
 
   WZOR: AAKKBBBBCCCDXXXXXXXXXXXXXXXX
           AA - prefiks kraju, tylko PL
@@ -88,17 +94,25 @@ Dla ID banku prawidlowa linia polecen wyglada:
   Dla oceny POZ oba te numery musza byc poprawne.
 
 - Numer ID (odzialu) banku, opcja /B
-  Jest to 8 cyfr wystepujacych na pozycjach od 3 do 10 w numerze konta,
-  czyli numerze IBAN bez perfiksu PL.
+  Jest to 8 cyfr wystepujacych na pozycjach od 3 do 10 w numerze konta.
 
 - ISBN / ISSN, opcja /I
-  Ta opcja jako jedyna operuje na starych numerach, obowiazujacych do 2007r.
-  Obecnie te numery sa zgodne z EAN13 i musza byc sprawdzane opcja /E
+  Ta opcja jako jedyna operuje tylko na starych numerach, obowiazujacych
+  do 2007r. Obecnie te numery sa zgodne z EAN13 i powinny byc sprawdzane
+  opcja /E
 
 - Numer karty platniczej, opcja /K
-  Aktualnie powinny dzialac wszystkie karty (wszystkich organizacji), jednak
-  trzeba miec na uwadze fakt, ze SPRID uzna za blad numery ponizej 13 cyfr
-  i powyzej 16.
+  Dzialaja karty z cyfra kontrolna wyznaczana algorytmen Luhn'a, czyli
+  prawie wszystkie. Nalezy jednak pamietac, ze SPRID wykaze blad w numerach
+  mniejszych niz 13 i wiekszych niz 16 cyfr.
+  Numer karty z iloscia cyfr spoza powyzszego zakresu mozna sprawdzic
+  opcja /L.
+
+- Algorytm Luhn'a, opcja /L
+  Mozna sprawdzic dowolny (do 32 zn.) numer z cyfra kontrolna wyznaczona
+  algorytmem Luhn'a.
+  Numer karty platniczej ma osobna pozycje ze wzgledu na kontrole ilosci
+  cyfr, ale opcja /L oczywiacie wykaze poprawnosc czy blad w tym numerze.
 
 - NIP, opcja /N
   Numer NIP nadawany w Polsce.
@@ -125,20 +139,19 @@ Dla ID banku prawidlowa linia polecen wyglada:
   SPRID dopuszcza stosowanie ukosnikow tylko w miejscach gdzie formalnie
   wystepuja.
 
-  UWAGA!
-  Opcja najslabiej przetestowana (brak dostepnych generatorow).
-
 
       KOPMATYBILNOSC
       --------------
 DOSBox v0.74-3 - kompilacja aktualnej wersji.
 MS-DOS v5.0+   - na maszynie virtualnej.
+FreeDOS v1.3   - na maszynie wirtualnej.
+
 MS-DOS v5.0+   - SPRID v1.0 na maszynie fizycznej.
                  Aktualnej wersji nie testowano.
-FreeDOS v1.3   - na maszynie wirtualnej.
 
 
       ZROLDLA
       -------
+Wikipedia   https://en.wikipedia.org/wiki/Luhn_algorithm
 R.J.Zylla   https://romek.info/ut/kody.html
-GENAPPS.pl  https://www.genapps.pl - poprawnie dzialajace generatory
+GENAPPS.pl  https://www.genapps.pl - generatory
