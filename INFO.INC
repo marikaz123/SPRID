@@ -9,7 +9,7 @@ DB 13,10
 DB 'OPCJE:  /A  IBAN (PL)                   /B  ID Banku',13,10
 DB '        /D  Dowod Osobisty              /E  EAN (8 lub 13 cyfr)',13,10
 DB '        /I  ISBN/ISSN (stare)           /K  Karta Platnicza',13,10
-DB "        /L  IMEI itp. (alg. Luhn'a)     /N  NIP (PL)",13,10
+DB "        /L  Alg. Luhn'a (IMEI itp.)     /N  NIP (PL)",13,10
 DB '        /P  PESEL                       /R  REGON (9 lub 14 cyfr)',13,10
 DB '        /S  Paszport                    /W  Ksiega Wieczysta (nowa)',13,10
 DB 13,10

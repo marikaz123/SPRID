@@ -233,15 +233,13 @@ caseI:          ;ISBN / ISSN
 caseK:          ;KARTA KREDYTOWA
                 mov statSW,6
                 SKIPCOL
-                ;mov cx,19     ;max dl. nr karty
-                 mov cx,16
+                mov cx,16
                 call _GDIDFC
                 jc @@esn
                 cmp BYTE PTR [si-1],SEP
                 je @@esn
                 dec cx
-                ;cmp cx,7
-                 cmp cx,3       ;min. dl. nr karty (16-3)
+                cmp cx,3
                 ja @@esn
                 jmp @@eop
 ;--------------------------------------------------------------------- /L ---

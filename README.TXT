@@ -2,7 +2,7 @@
      **  Sprawdz Numer Identyfikacyjny  **
      **         SPRID ver. 2.4          **                 (c)1994 'marikaz'
 -----------------------------------------------------------------------------
-                                                                     MOD0724
+                                                                     MOD2408
 
 Program sprawdza pod wzgledem FORMALNYM poprawnosc niektorych numerow
 ewidencyjnych i seryjnych na podstawie cyfry kontrolnej. Nie weryfikuje
@@ -30,18 +30,18 @@ Skladnia:
            SPRID.COM {OPCJE[:]}<ID>
 
    OPCJE:
-           /A[:]  IBAN (tylko PL) *
-           /B[:]  Numer ID Banku *
+           /A[:]  IBAN (tylko PL)
+           /B[:]  Numer ID Banku
            /D[:]  Dowod Osobisty
            /E[:]  EAN (8 lub 13 cyfr)
-           /I[:]  ISBN/ISSN (stare) *
-           /K[:]  Numer Karty Platniczej *
+           /I[:]  ISBN/ISSN (stare)
+           /K[:]  Numer Karty Platniczej
            /N[:]  NIP (tylko PL)
-           /L[:]  Algorytm Luhn'a *
+           /L[:]  Algorytm Luhn'a
            /P[:]  PESEL
-           /R[:]  REGON (9 lub 14) *
+           /R[:]  REGON (9 lub 14)
            /S[:]  Paszport
-           /W[:]  Numer Ksiegi Wieczystej (nowej) *
+           /W[:]  Numer Ksiegi Wieczystej (nowej)
 
       ID:
            Jak w dokumencie (bez spacji)
@@ -49,7 +49,6 @@ Skladnia:
     Info:
           SPRID.COM /?
 
-* Patrz uwagi.
 
 Linia polecen:
 

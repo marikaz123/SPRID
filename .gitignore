@@ -1,5 +1,9 @@
-*.MAP
+*.COM
 *.OBJ
-*.TR
+*.MAP
+*.LST
 *.BAT
+*.TR
 STATUS
+TMP/
+TESTS/

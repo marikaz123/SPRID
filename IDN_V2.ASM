@@ -1,9 +1,9 @@
 ;----------------------------------------------------------------------------
-; Sprawdz numer Identyfikacyjny :: SPRID v2.4 :: MOD0724
+; SPRAWDZ NUMER IDENTYFIKACYJNY :: SPRID v2.4 :: MOD2408 :: AUTOR: 'marikaz'
 ;----------------------------------------------------------------------------
 ; Program sprawdza pod wzgledem formalnym poprawnosc niektorych numerow
 ; ewidencyjnych i seryjnych.
-;--------------------------------------------------------------/ marikaz /---
+;----------------------------------------------------------------------------
 
 _TEXT SEGMENT WORD PUBLIC 'CODE'
       ASSUME cs:_TEXT
@@ -17,7 +17,7 @@ PRINTMSG MACRO msg
          int 21h
          ENDM
 
-CPOZ  = 2     ;  . Atrybut dla napisu
+CPOZ  = 2     ;  . kolor napisu
 CNEG  = 4     ;.
 IDLEN = 32d
 
@@ -35,7 +35,6 @@ chkSW1:         ;DOWOD
                 mov bx,OFFSET dxv
                 mov cx,9
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 or dx,dx
@@ -47,7 +46,6 @@ chkSW2:         ;PESEL
                 mov bx,OFFSET pxv
                 mov cx,10
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 cmp [id+20],dx
@@ -59,7 +57,6 @@ chkSW3:         ;PASZPORT
                 mov bx,OFFSET sxv
                 mov cx,9
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 or dx,dx
@@ -72,7 +69,6 @@ chkSW4:         ;ID BANKU
                 mov cx,8
                 call CheckSumW
                 mov bx,10
-                mov ax,cSum
                 div bx
                 or dx,dx
                 jz verPoz
@@ -83,7 +79,6 @@ chkSW5:         ;NIP
                 mov bx,OFFSET nxv
                 mov cx,9
                 call CheckSumW
-                mov ax,cSum
                 mov bx,11
                 div bx
                 cmp dx,10
@@ -94,8 +89,7 @@ chkSW5:         ;NIP
 chkSW6:         ;NUMER KARTY
                 cmp statSW,6
                 jne chkSW7
-                ;mov ax,19    ;max dla karty
-                 mov ax,16
+                mov ax,16
                 sub ax,cx
                 mov cx,IDLEN
                 sub cx,ax
@@ -113,7 +107,6 @@ chkSW6:         ;NUMER KARTY
                 cld
                 mov cx,IDLEN SHR 1 ;!
                 call CheckSumL
-                mov ax,cSum
                 xor dx,dx
                 div bx
                 or dx,dx
@@ -126,7 +119,6 @@ chkSW7:         ;REGON
                 mov cx,8
                 mov bx,OFFSET rxv
                 call CheckSumW
-                mov ax,cSum
                 mov bx,11
                 div bx
                 cmp dx,10
@@ -141,9 +133,7 @@ chkSW7:         ;REGON
          reg14:
                 mov bx,OFFSET rEv
                 mov cx,13
-                mov cSum,0
                 call CheckSumW
-                mov ax,cSum
                 mov bx,11
                 div bx
                 cmp dx,10
@@ -159,7 +149,6 @@ chkSW8:         ;KSIEGA W.
                 mov bx,OFFSET wxv
                 mov cx,12
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 cmp [id+12*2],dx
@@ -173,7 +162,6 @@ chkSW9:         ;EAN
                 mov cx,12
                 mov bx,OFFSET exv
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 mov ax,bx
@@ -187,7 +175,6 @@ chkSW9:         ;EAN
                 mov cx,7
                 mov bx,OFFSET exv+2
                 call CheckSumW
-                mov ax,cSum
                 mov bx,10
                 div bx
                 mov ax,bx
@@ -206,7 +193,6 @@ chkSW10:        ;ISBN/ISSN
                 mov bx,OFFSET ixv
                 call CheckSumW
                 mov bx,11
-                mov ax,cSum
                 div bx
                 mov ax,bx
                 sub ax,dx
@@ -220,7 +206,6 @@ chkSW10:        ;ISBN/ISSN
                 mov bx,OFFSET ixv+4
                 call CheckSumW
                 mov bx,11
-                mov ax,cSum
                 div bx
                 mov ax,bx
                 sub ax,dx
@@ -243,7 +228,6 @@ chkSW11:        ;IBAN
                 mov cx,8
                 call CheckSumW
                 mov bx,10
-                mov ax,cSum
                 div bx
                 or dx,dx
                 jnz verNeg
@@ -267,15 +251,14 @@ chkSW12:
                 sub si,cx
                 mov cx,ax
                 std
-                rep movsw ;wrow. do prawej
+                rep movsw ;do prawej
                 pop cx
-                mov ax,0  ;i dop. 0
+                mov ax,0  ;dop. 0
                 rep stosw
          skipL:
                 cld
                 mov cx,IDLEN SHR 1
                 call CheckSumL
-                mov ax,cSum
                 xor dx,dx
                 div bx
                 or dx,dx
@@ -328,8 +311,7 @@ PutColor        ENDP
 
                 INCLUDE csum.asm
 EVENDATA
-id      DW IDLEN DUP (?)  ;NUMER
-cSum    DW 0
+id      DW IDLEN DUP (?)                   ;NUMER
 iban_PL DB 24 DUP (?),2,5,2,1,?,?          ;2,5 = P  2,1 = L
 wxv     DW 1,3,7,1,3,7,1,3,7,1,3,7         ;Nowa KW
 nxv     DW 6,5,7,2,3,4,5,6,7               ;NIP
